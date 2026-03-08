@@ -7,7 +7,7 @@ import { useAppContext } from "../context/AppContext";
 import { useToast } from "./Toast";
 
 export default function TaskSection({ dateKey }) {
-    const { triggerRefresh } = useAppContext();
+    const { refreshSignal, triggerRefresh } = useAppContext();
     const addToast = useToast();
     const [tasks, setTasks] = useState([]);
     const [inputValue, setInputValue] = useState("");
@@ -17,7 +17,7 @@ export default function TaskSection({ dateKey }) {
         mountedRef.current = true;
         loadTasks();
         return () => { mountedRef.current = false; };
-    }, [dateKey]);
+    }, [dateKey, refreshSignal]);
 
     async function loadTasks() {
         const data = await getTasksForDate(dateKey);
