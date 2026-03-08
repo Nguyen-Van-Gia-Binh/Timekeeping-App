@@ -64,8 +64,8 @@ This project requires **Node.js** (version 18+ is highly recommended).
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/appChamCong.git
-    cd appChamCong
+    git clone https://github.com/Nguyen-Van-Gia-Binh/Timekeeping-App.git
+    cd Timekeeping-App
     ```
 
 2.  **Install dependencies:**
@@ -95,3 +95,9 @@ This project requires **Node.js** (version 18+ is highly recommended).
 ---
 
 *Stay disciplined, hit your targets, and earn those virtual rewards! 🎯*
+
+---
+
+<p align="center">
+  Made with ❤️ by <a href="https://github.com/Nguyen-Van-Gia-Binh">Nguyễn Văn Gia Bình</a>
+</p>
