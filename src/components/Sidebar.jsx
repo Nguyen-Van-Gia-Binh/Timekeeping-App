@@ -44,7 +44,7 @@ export default function Sidebar({ activePage, setActivePage }) {
         if (!confirmed) return;
         try {
             await clearAllData();
-            const res = await fetch("/data/Data.json");
+            const res = await fetch(`${import.meta.env.BASE_URL}data/Data.json`);
             if (res.ok) {
                 const payload = await res.json();
                 await importDataFromPayload(payload);
