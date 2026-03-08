@@ -9,6 +9,8 @@ import {
 import { vi } from "date-fns/locale";
 import { getAllDayRecords } from "../services/localService";
 
+import { useAppContext } from "../context/AppContext";
+
 const TIME_TABS = [
     { id: "day", label: "14 ngày" },
     { id: "week", label: "8 tuần" },
@@ -22,6 +24,7 @@ const METRIC_TABS = [
 ];
 
 export default function Statistics() {
+    const { refreshSignal } = useAppContext();
     const [dayRecords, setDayRecords] = useState([]);
     const [timeRange, setTimeRange] = useState("day");
     const [metric, setMetric] = useState("hours");
@@ -32,7 +35,7 @@ export default function Statistics() {
             setDayRecords(records);
         }
         loadData();
-    }, []);
+    }, [refreshSignal]);
 
     const chartData = useMemo(() => {
         if (!dayRecords || dayRecords.length === 0) return [];
