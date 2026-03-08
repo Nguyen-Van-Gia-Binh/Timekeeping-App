@@ -1,7 +1,13 @@
 {
-  "version": 2,
-  "exportedAt": "2026-03-08T17:08:30.835Z",
+  "version": 3,
+  "exportedAt": "2026-03-08T17:23:36.879Z",
   "tasks": [],
   "sessions": [],
-  "withdrawals": []
+  "withdrawals": [],
+  "settings": {
+    "moneyGoal": "10000000",
+    "monthlyHourGoal": "50",
+    "moneyGoalName": "Mục tiêu tích lũy",
+    "monthlyHourGoalName": "Mục tiêu tháng"
+  }
 }
