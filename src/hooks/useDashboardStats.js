@@ -77,6 +77,12 @@ export function useDashboardStats(refreshSignal) {
     }, [todayKey]);
 
     useEffect(() => {
+        // Đồng bộ lại từ localStorage (hữu ích khi vừa Import/Reset data)
+        setMoneyGoalState(parseInt(localStorage.getItem("StudyTracker_MoneyGoal") || "10000000", 10));
+        setMonthlyHourGoalState(parseInt(localStorage.getItem("StudyTracker_MonthlyHourGoal") || "50", 10));
+        setMoneyGoalNameState(localStorage.getItem("StudyTracker_MoneyGoalName") || "Mục tiêu tích lũy");
+        setMonthlyHourGoalNameState(localStorage.getItem("StudyTracker_MonthlyHourGoalName") || "Mục tiêu tháng");
+
         load();
     }, [load, refreshSignal]);
 

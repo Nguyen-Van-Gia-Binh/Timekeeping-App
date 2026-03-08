@@ -95,7 +95,13 @@ export async function exportData() {
         db.sessions.toArray(),
         db.withdrawals.toArray(),
     ]);
-    const payload = { version: 2, exportedAt: new Date().toISOString(), tasks, sessions, withdrawals };
+    const settings = {
+        moneyGoal: localStorage.getItem("StudyTracker_MoneyGoal") || "10000000",
+        monthlyHourGoal: localStorage.getItem("StudyTracker_MonthlyHourGoal") || "50",
+        moneyGoalName: localStorage.getItem("StudyTracker_MoneyGoalName") || "Mục tiêu tích lũy",
+        monthlyHourGoalName: localStorage.getItem("StudyTracker_MonthlyHourGoalName") || "Mục tiêu tháng"
+    };
+    const payload = { version: 3, exportedAt: new Date().toISOString(), tasks, sessions, withdrawals, settings };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -106,8 +112,17 @@ export async function exportData() {
 }
 
 export async function importDataFromPayload(payload) {
-    const { tasks, sessions, withdrawals } = payload;
+    const { tasks, sessions, withdrawals, settings } = payload;
     let count = 0;
+
+    // Import Settings to localStorage directly
+    if (settings) {
+        if (settings.moneyGoal) localStorage.setItem("StudyTracker_MoneyGoal", settings.moneyGoal);
+        if (settings.monthlyHourGoal) localStorage.setItem("StudyTracker_MonthlyHourGoal", settings.monthlyHourGoal);
+        if (settings.moneyGoalName) localStorage.setItem("StudyTracker_MoneyGoalName", settings.moneyGoalName);
+        if (settings.monthlyHourGoalName) localStorage.setItem("StudyTracker_MonthlyHourGoalName", settings.monthlyHourGoalName);
+    }
+
     await db.transaction("rw", db.tasks, db.sessions, db.withdrawals, async () => {
         if (tasks?.length) {
             for (const t of tasks) {
@@ -152,7 +167,13 @@ export async function getDataSnapshot() {
         db.sessions.toArray(),
         db.withdrawals.toArray(),
     ]);
-    return { version: 2, exportedAt: new Date().toISOString(), tasks, sessions, withdrawals };
+    const settings = {
+        moneyGoal: localStorage.getItem("StudyTracker_MoneyGoal") || "10000000",
+        monthlyHourGoal: localStorage.getItem("StudyTracker_MonthlyHourGoal") || "50",
+        moneyGoalName: localStorage.getItem("StudyTracker_MoneyGoalName") || "Mục tiêu tích lũy",
+        monthlyHourGoalName: localStorage.getItem("StudyTracker_MonthlyHourGoalName") || "Mục tiêu tháng"
+    };
+    return { version: 3, exportedAt: new Date().toISOString(), tasks, sessions, withdrawals, settings };
 }
 
 
