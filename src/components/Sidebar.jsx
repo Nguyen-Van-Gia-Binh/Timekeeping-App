@@ -114,10 +114,10 @@ export default function Sidebar({ activePage, setActivePage }) {
                         Dữ liệu
                     </p>
                     <button className="sidebar-nav-item" onClick={handleExport} id="btn-export">
-                        <Download size={16} /> Xuất dữ liệu
+                        <Upload size={16} /> Xuất dữ liệu
                     </button>
                     <button className="sidebar-nav-item" onClick={handleImportClick} id="btn-import">
-                        <Upload size={16} /> Nhập dữ liệu
+                        <Download size={16} /> Nhập dữ liệu
                     </button>
                     <button
                         className="sidebar-nav-item"
