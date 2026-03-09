@@ -22,10 +22,14 @@ export default function StudyTimer() {
     const [showCamera, setShowCamera] = useState(false);
     const [manualHours, setManualHours] = useState("");
     const intervalRef = useRef(null);
+    const startTimeRef = useRef(null);
 
     useEffect(() => {
         if (running) {
-            intervalRef.current = setInterval(() => setElapsed((e) => e + 1), 1000);
+            startTimeRef.current = Date.now() - elapsed * 1000;
+            intervalRef.current = setInterval(() => {
+                setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000));
+            }, 1000);
         } else {
             clearInterval(intervalRef.current);
         }
