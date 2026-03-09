@@ -38,15 +38,15 @@ export default function Statistics() {
     }, [refreshSignal]);
 
     const chartData = useMemo(() => {
-        if (!dayRecords || dayRecords.length === 0) return [];
         const today = new Date();
+        const records = dayRecords || [];
 
         if (timeRange === "day") {
             const start = subDays(today, 13);
             const days = eachDayOfInterval({ start, end: today });
             return days.map(d => {
                 const key = format(d, "yyyy-MM-dd");
-                const record = dayRecords.find(r => r.date === key);
+                const record = records.find(r => r.date === key);
                 return {
                     name: format(d, "dd/MM"),
                     hours: record ? Number((record.studySeconds / 3600).toFixed(1)) : 0,
@@ -62,7 +62,7 @@ export default function Statistics() {
                 const d = subDays(today, i * 7);
                 const wStart = startOfWeek(d, { weekStartsOn: 1 });
                 const wEnd = endOfWeek(d, { weekStartsOn: 1 });
-                const weekRecs = dayRecords.filter(r => { const rd = parseISO(r.date); return rd >= wStart && rd <= wEnd; });
+                const weekRecs = records.filter(r => { const rd = parseISO(r.date); return rd >= wStart && rd <= wEnd; });
                 const weekSeconds = weekRecs.reduce((sum, r) => sum + (r.studySeconds || 0), 0);
                 const completedDays = weekRecs.filter(r => r.completedAll).length;
                 data.push({
@@ -75,20 +75,18 @@ export default function Statistics() {
         }
 
         if (timeRange === "month") {
-            // 12 tháng gần nhất tính từ tháng hiện tại (giống "day" hiển thị 14 ngày gần nhất)
+            // 12 tháng gần nhất tính từ tháng hiện tại
             const data = [];
             for (let i = 11; i >= 0; i--) {
-                // Lùi i tháng từ tháng hiện tại
                 const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
                 const mStart = startOfMonth(d);
                 const mEnd = endOfMonth(d);
-                const monthRecs = dayRecords.filter(r => {
+                const monthRecs = records.filter(r => {
                     const rd = parseISO(r.date);
                     return rd >= mStart && rd <= mEnd;
                 });
                 const monthSecs = monthRecs.reduce((sum, r) => sum + (r.studySeconds || 0), 0);
                 const completedDays = monthRecs.filter(r => r.completedAll).length;
-                // Thêm năm vào label nếu khác năm hiện tại
                 const yearSuffix = d.getFullYear() !== today.getFullYear() ? `'${format(d, "yy")}` : "";
                 const label = `T${format(d, "MM")}${yearSuffix}`;
                 data.push({
@@ -100,16 +98,19 @@ export default function Statistics() {
             return data;
         }
 
-
-
         if (timeRange === "year") {
-            if (dayRecords.length === 0) return [];
-            const dates = dayRecords.map(r => parseISO(r.date)).sort((a, b) => a - b);
-            const firstYear = dates[0].getFullYear();
             const currentYear = today.getFullYear();
+            let firstYear = currentYear - 4; // Hiển thị mặc định 5 năm đổ lại nếu không có data
+
+            if (records.length > 0) {
+                const dates = records.map(r => parseISO(r.date)).sort((a, b) => a - b);
+                const dataFirstYear = dates[0].getFullYear();
+                if (dataFirstYear < firstYear) firstYear = dataFirstYear;
+            }
+
             const data = [];
             for (let y = firstYear; y <= currentYear; y++) {
-                const yearRecs = dayRecords.filter(r => parseISO(r.date).getFullYear() === y);
+                const yearRecs = records.filter(r => parseISO(r.date).getFullYear() === y);
                 const yearSecs = yearRecs.reduce((sum, r) => sum + (r.studySeconds || 0), 0);
                 const completedDays = yearRecs.filter(r => r.completedAll).length;
                 data.push({

@@ -11,6 +11,7 @@ import WithdrawModal from "./WithdrawModal";
 import DebtModal from "./DebtModal";
 import GoalEditModal from "./GoalEditModal";
 import SettingsModal from "./SettingsModal";
+import HelpTab from "./HelpTab";
 import { Settings as SettingsIcon } from "lucide-react";
 
 const QUOTES = [
@@ -311,6 +312,9 @@ export default function Dashboard() {
                     </div>
                 </div>
             )}
+
+            {/* Help Tab */}
+            <HelpTab />
 
             {/* Modals */}
             {showWithdrawModal && (
