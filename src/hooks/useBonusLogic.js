@@ -13,13 +13,27 @@ import {
  * Given an array of dayRecords (each having { date: Date, tasks: [], completedAll: bool, missedCount: number, studySeconds: number }),
  * calculate total balance.
  */
-export function calculateBalance(dayRecords) {
+export function calculateBalance(dayRecords, settings = {}) {
     let balance = 0;
+
+    const {
+        isTargetPenaltyEnabled = false,
+        dailyTargetHours = 2,
+        penaltyPerHour = 10000
+    } = settings;
 
     for (const day of dayRecords) {
         // +10k per hour of study
         const studyHours = (day.studySeconds || 0) / 3600;
         balance += Math.floor(studyHours) * 10000;
+
+        // Cơ chế 3: Hình phạt không đạt target
+        if (isTargetPenaltyEnabled) {
+            if (studyHours < dailyTargetHours) {
+                const missingHours = dailyTargetHours - studyHours;
+                balance -= Math.ceil(missingHours) * penaltyPerHour;
+            }
+        }
 
         // Per-task penalty: -10k each missed task
         balance -= (day.missedCount || 0) * 10000;
@@ -113,11 +127,53 @@ export function calculateMonthlyAdjustments(dayRecords) {
 /**
  * Grand total balance from all records.
  */
-export function computeTotalBalance(dayRecords) {
-    const base = calculateBalance(dayRecords);
+export function computeTotalBalance(dayRecords, settings = {}) {
+    const base = calculateBalance(dayRecords, settings);
     const weekly = calculateWeeklyAdjustments(dayRecords);
     const monthly = calculateMonthlyAdjustments(dayRecords);
-    return base + weekly.bonus - weekly.penalty + monthly.bonus - monthly.penalty;
+
+    let total = base + weekly.bonus - weekly.penalty + monthly.bonus - monthly.penalty;
+
+    const { isDailyFeeEnabled = false, dailyFeeAmount = 10000, todayKey } = settings;
+
+    // Cơ chế 2: Thu phí duy trì mỗi ngày tính từ ngày đầu tiên dùng app
+    if (isDailyFeeEnabled && dayRecords.length > 0 && todayKey) {
+        // dayRecords được parse từ cũ đến mới, nên index 0 là ngày cũ nhất
+        // Tuy nhiên hàm parseISO chạy tốt nhất trên mảng đã sort.
+        // Assume dayRecords is sorted chronologically by caller.
+        const firstRecordDate = dayRecords[0]?.date;
+        if (firstRecordDate) {
+            const startDate = new Date(firstRecordDate);
+            const endDate = new Date(todayKey);
+            // Tính số ngày
+            const timeDiff = endDate.getTime() - startDate.getTime();
+            let daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24)) + 1; // +1 để tính cả ngày đầu tiên
+            if (daysDiff < 1) daysDiff = 1;
+
+            total -= (daysDiff * dailyFeeAmount);
+        }
+    }
+
+    // Cơ chế 3: Hình phạt không đạt target cho những NGÀY TRỐNG (không xài app)
+    const { isTargetPenaltyEnabled = false, dailyTargetHours = 2, penaltyPerHour = 10000 } = settings;
+    if (isTargetPenaltyEnabled && dayRecords.length > 0 && todayKey) {
+        const firstRecordDate = dayRecords[0]?.date;
+        if (firstRecordDate) {
+            const startDate = new Date(firstRecordDate);
+            const endDate = new Date(todayKey);
+            const timeDiff = endDate.getTime() - startDate.getTime();
+            let daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24)) + 1;
+            if (daysDiff < 1) daysDiff = 1;
+
+            // Nếu số ngày trôi qua > số ngày có record, tức là có ngày không thèm mở app
+            const emptyDaysCount = daysDiff - dayRecords.length;
+            if (emptyDaysCount > 0) {
+                total -= (emptyDaysCount * dailyTargetHours * penaltyPerHour);
+            }
+        }
+    }
+
+    return total;
 }
 
 export function formatCurrency(amount) {

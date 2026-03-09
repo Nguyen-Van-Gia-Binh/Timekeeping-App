@@ -1090,3 +1090,91 @@ body {
     display: block;
   }
 }
+
+/* ─── Toggle Switch ─────────────────────────────────────────────────── */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+  flex-shrink: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+  z-index: -1;
+}
+
+.toggle-switch .slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  border-radius: 28px;
+  pointer-events: none;
+}
+
+.toggle-switch .slider::before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 2px;
+  bottom: 2px;
+  background-color: var(--text-secondary);
+  transition: 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked+.slider {
+  background-color: var(--accent-success);
+  border-color: var(--accent-success);
+}
+
+.toggle-switch input:checked+.slider::before {
+  transform: translateX(22px);
+  background-color: #ffffff;
+}
+
+.toggle-switch input:focus-visible+.slider {
+  box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px var(--accent-success);
+}
+
+/* Active press effect */
+.toggle-switch:active .slider::before {
+  width: 26px;
+}
+
+.toggle-switch input:checked:active+.slider::before {
+  transform: translateX(18px);
+}
+
+/* ─── Settings Item ─────────────────────────────────────────────────── */
+.settings-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.settings-item:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(99, 179, 237, 0.3);
+  transform: translateY(-1px);
+}

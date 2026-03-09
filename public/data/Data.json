@@ -1,9 +1,10 @@
 {
   "version": 3,
-  "exportedAt": "2026-03-08T17:23:36.879Z",
+  "exportedAt": "2026-03-09T05:58:23.422Z",
   "tasks": [],
   "sessions": [],
   "withdrawals": [],
+  "debts": [],
   "settings": {
     "moneyGoal": "10000000",
     "monthlyHourGoal": "50",

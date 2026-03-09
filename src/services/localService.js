@@ -86,14 +86,46 @@ export async function getWithdrawals() {
     return db.withdrawals.orderBy("timestamp").reverse().toArray();
 }
 
+// ─── DEBTS ───────────────────────────────────────────────────────────────────
+
+export async function addDebt(amount, reason) {
+    return await db.debts.add({
+        amount,
+        reason,
+        timestamp: Date.now(),
+        isPaid: false
+    });
+}
+
+export async function getUnpaidDebts() {
+    return db.debts.toArray().then(all => all.filter(d => !d.isPaid));
+}
+
+export async function payDebt(debtId, amountToPay) {
+    const debt = await db.debts.get(debtId);
+    if (!debt) return 0; // trả lại phần dư nếu không tìm thấy nợ
+
+    if (amountToPay >= debt.amount) {
+        // Trả hết nợ này, dư bao nhiêu đem cấn trừ tiếp hoặc trả lại
+        const remainder = amountToPay - debt.amount;
+        await db.debts.update(debtId, { isPaid: true, amount: 0 });
+        return remainder;
+    } else {
+        // Chưa trả hết
+        await db.debts.update(debtId, { amount: debt.amount - amountToPay });
+        return 0; // không còn dư
+    }
+}
+
 // ─── EXPORT / IMPORT ─────────────────────────────────────────────────────────
 
 
 export async function exportData() {
-    const [tasks, sessions, withdrawals] = await Promise.all([
+    const [tasks, sessions, withdrawals, debts] = await Promise.all([
         db.tasks.toArray(),
         db.sessions.toArray(),
         db.withdrawals.toArray(),
+        db.debts.toArray(),
     ]);
     const settings = {
         moneyGoal: localStorage.getItem("StudyTracker_MoneyGoal") || "10000000",
@@ -101,7 +133,7 @@ export async function exportData() {
         moneyGoalName: localStorage.getItem("StudyTracker_MoneyGoalName") || "Mục tiêu tích lũy",
         monthlyHourGoalName: localStorage.getItem("StudyTracker_MonthlyHourGoalName") || "Mục tiêu tháng"
     };
-    const payload = { version: 3, exportedAt: new Date().toISOString(), tasks, sessions, withdrawals, settings };
+    const payload = { version: 3, exportedAt: new Date().toISOString(), tasks, sessions, withdrawals, debts, settings };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -112,7 +144,7 @@ export async function exportData() {
 }
 
 export async function importDataFromPayload(payload) {
-    const { tasks, sessions, withdrawals, settings } = payload;
+    const { tasks, sessions, withdrawals, debts, settings } = payload;
     let count = 0;
 
     // Import Settings to localStorage directly
@@ -123,7 +155,7 @@ export async function importDataFromPayload(payload) {
         if (settings.monthlyHourGoalName) localStorage.setItem("StudyTracker_MonthlyHourGoalName", settings.monthlyHourGoalName);
     }
 
-    await db.transaction("rw", db.tasks, db.sessions, db.withdrawals, async () => {
+    await db.transaction("rw", db.tasks, db.sessions, db.withdrawals, db.debts, async () => {
         if (tasks?.length) {
             for (const t of tasks) {
                 const { id, ...rest } = t;
@@ -145,6 +177,13 @@ export async function importDataFromPayload(payload) {
             }
             count += withdrawals.length;
         }
+        if (debts?.length) {
+            for (const d of debts) {
+                const { id, ...rest } = d;
+                await db.debts.put({ id, ...rest });
+            }
+            count += debts.length;
+        }
     });
     return count;
 }
@@ -162,10 +201,11 @@ export async function getTaskStats() {
 }
 
 export async function getDataSnapshot() {
-    const [tasks, sessions, withdrawals] = await Promise.all([
+    const [tasks, sessions, withdrawals, debts] = await Promise.all([
         db.tasks.toArray(),
         db.sessions.toArray(),
         db.withdrawals.toArray(),
+        db.debts.toArray()
     ]);
     const settings = {
         moneyGoal: localStorage.getItem("StudyTracker_MoneyGoal") || "10000000",
@@ -173,15 +213,16 @@ export async function getDataSnapshot() {
         moneyGoalName: localStorage.getItem("StudyTracker_MoneyGoalName") || "Mục tiêu tích lũy",
         monthlyHourGoalName: localStorage.getItem("StudyTracker_MonthlyHourGoalName") || "Mục tiêu tháng"
     };
-    return { version: 3, exportedAt: new Date().toISOString(), tasks, sessions, withdrawals, settings };
+    return { version: 3, exportedAt: new Date().toISOString(), tasks, sessions, withdrawals, debts, settings };
 }
 
 
 export async function clearAllData() {
-    await db.transaction("rw", db.tasks, db.sessions, db.withdrawals, async () => {
+    await db.transaction("rw", db.tasks, db.sessions, db.withdrawals, db.debts, async () => {
         await db.tasks.clear();
         await db.sessions.clear();
         await db.withdrawals.clear();
+        await db.debts.clear();
     });
 }
 
