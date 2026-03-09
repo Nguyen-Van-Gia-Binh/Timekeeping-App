@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, Square, Clock, PlusCircle } from "lucide-react";
 import CameraModal from "./CameraModal";
-import { addStudySession } from "../services/localService";
+import { addStudySession, getUnpaidDebts, payDebt } from "../services/localService";
 import { useAppContext } from "../context/AppContext";
 import { useToast } from "./Toast";
 
@@ -45,16 +45,42 @@ export default function StudyTimer() {
         setRunning(false);
         if (elapsed > 0) {
             await addStudySession(elapsed);
-            triggerRefresh();
             const hrs = Math.floor(elapsed / 3600);
             const earned = hrs * 10000;
-            addToast({
-                message: hrs > 0
-                    ? `⏱️ Phiên học lưu thành công! +${earned.toLocaleString("vi-VN")}đ`
-                    : "⏱️ Phiên học đã được lưu!",
-                type: "success",
-                duration: 4000,
-            });
+
+            if (earned > 0) {
+                const debts = await getUnpaidDebts();
+                let remainingEarned = earned;
+                let paidAmount = 0;
+                for (const d of debts) {
+                    if (remainingEarned <= 0) break;
+                    const toPay = Math.min(remainingEarned, d.amount);
+                    await payDebt(d.id, toPay);
+                    remainingEarned -= toPay;
+                    paidAmount += toPay;
+                }
+
+                if (paidAmount > 0) {
+                    addToast({
+                        message: `⏱️ Đã lưu! Thu nhập ${earned.toLocaleString("vi-VN")}đ tự động trừ ${paidAmount.toLocaleString("vi-VN")}đ trả nợ.`,
+                        type: "warning",
+                        duration: 5000,
+                    });
+                } else {
+                    addToast({
+                        message: `⏱️ Phiên học lưu thành công! +${earned.toLocaleString("vi-VN")}đ`,
+                        type: "success",
+                        duration: 4000,
+                    });
+                }
+            } else {
+                addToast({
+                    message: "⏱️ Phiên học đã được lưu!",
+                    type: "success",
+                    duration: 4000,
+                });
+            }
+            triggerRefresh();
         }
         setElapsed(0);
     };
@@ -64,12 +90,39 @@ export default function StudyTimer() {
         if (h > 0) {
             const seconds = Math.floor(h * 3600);
             await addStudySession(seconds);
+
+            const earned = Math.floor(h) * 10000;
+            if (earned > 0) {
+                const debts = await getUnpaidDebts();
+                let remainingEarned = earned;
+                let paidAmount = 0;
+                for (const d of debts) {
+                    if (remainingEarned <= 0) break;
+                    const toPay = Math.min(remainingEarned, d.amount);
+                    await payDebt(d.id, toPay);
+                    remainingEarned -= toPay;
+                    paidAmount += toPay;
+                }
+
+                if (paidAmount > 0) {
+                    addToast({
+                        message: `📝 Đã ghi ${h} giờ! Thu nhập ${earned.toLocaleString("vi-VN")}đ tự động trừ ${paidAmount.toLocaleString("vi-VN")}đ trả nợ.`,
+                        type: "warning",
+                    });
+                } else {
+                    addToast({
+                        message: `📝 Đã ghi ${h} giờ học! +${earned.toLocaleString("vi-VN")}đ`,
+                        type: "success",
+                    });
+                }
+            } else {
+                addToast({
+                    message: `📝 Đã ghi ${h} giờ học!`,
+                    type: "success",
+                });
+            }
             triggerRefresh();
             setManualHours("");
-            addToast({
-                message: `📝 Đã ghi ${h} giờ học! +${(Math.floor(h) * 10000).toLocaleString("vi-VN")}đ`,
-                type: "success",
-            });
         }
     };
 

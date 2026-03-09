@@ -3,12 +3,15 @@ import React, { useState, useMemo } from "react";
 import { TrendingUp, BookOpen, Calendar, CheckCircle, Flame } from "lucide-react";
 import { format, startOfWeek, endOfWeek, eachDayOfInterval } from "date-fns";
 import { formatCurrency } from "../hooks/useBonusLogic";
-import { addWithdrawal } from "../services/localService";
+import { addWithdrawal, addDebt } from "../services/localService";
 import { useAppContext } from "../context/AppContext";
 import { useDashboardStats } from "../hooks/useDashboardStats";
 import { useToast } from "./Toast";
 import WithdrawModal from "./WithdrawModal";
+import DebtModal from "./DebtModal";
 import GoalEditModal from "./GoalEditModal";
+import SettingsModal from "./SettingsModal";
+import { Settings as SettingsIcon } from "lucide-react";
 
 const QUOTES = [
     "Kỷ luật là cây cầu nối giữa mục tiêu và thành tựu!",
@@ -59,8 +62,10 @@ export default function Dashboard() {
     const { refreshSignal, triggerRefresh } = useAppContext();
     const addToast = useToast();
     const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+    const [showDebtModal, setShowDebtModal] = useState(false);
     const [showMoneyGoalModal, setShowMoneyGoalModal] = useState(false);
     const [showHourGoalModal, setShowHourGoalModal] = useState(false);
+    const [showSettingsModal, setShowSettingsModal] = useState(false);
 
     const quoteIndex = useMemo(() => new Date().getDate() % QUOTES.length, []);
 
@@ -91,6 +96,12 @@ export default function Dashboard() {
         todayMissed,
         todayDone,
         todayTasks,
+        debts,
+        totalDebtAmount,
+        isDailyFeeEnabled,
+        setIsDailyFeeEnabled,
+        isTargetPenaltyEnabled,
+        setIsTargetPenaltyEnabled,
         load,
     } = useDashboardStats(refreshSignal);
 
@@ -102,31 +113,66 @@ export default function Dashboard() {
         addToast({ message: `💳 Rút ${formatCurrency(amount)} thành công!`, type: "info" });
     };
 
+    const handleDebt = async (amount, reason) => {
+        await addDebt(amount, reason);
+        setShowDebtModal(false);
+        load();
+        triggerRefresh();
+        addToast({ message: `💳 Đã tạm ứng ${formatCurrency(amount)}! Hãy cố gắng học để trả nợ nhé.`, type: "warning" });
+    };
+
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
 
-            {/* Daily Quote */}
-            <div className="quote-banner">
-                "{QUOTES[quoteIndex]}"
+            {/* Daily Quote & Settings */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div className="quote-banner" style={{ flex: 1, margin: 0 }}>
+                    "{QUOTES[quoteIndex]}"
+                </div>
+                <button
+                    className="btn btn-outline"
+                    onClick={() => setShowSettingsModal(true)}
+                    style={{ padding: "8px 12px", display: "flex", alignItems: "center", gap: 6, borderColor: "var(--border)", height: 48 }}
+                >
+                    <SettingsIcon size={16} /> <span className="hide-mobile">Cài đặt Động lực</span>
+                </button>
             </div>
 
             {/* Balance Card */}
             <div className="card balance-card" style={{ position: "relative" }}>
                 <p className="card-title">💰 {moneyGoalName}</p>
-                <div className={`balance-amount ${currentBalance >= 0 ? "positive" : "negative"}`}>
-                    {formatCurrency(currentBalance)}
+
+                <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+                    <div className={`balance-amount ${currentBalance >= 0 ? "positive" : "negative"}`}>
+                        {formatCurrency(currentBalance)}
+                    </div>
+                    {totalDebtAmount > 0 && (
+                        <div style={{ color: "var(--accent-danger)", fontSize: 16, fontWeight: 600 }}>
+                            (Nợ: -{formatCurrency(totalDebtAmount)})
+                        </div>
+                    )}
                 </div>
+
                 <p className="balance-subtitle">
                     Tổng thu nhập: {formatCurrency(totalBalance)} | Đã rút: {formatCurrency(totalWithdrawn)}
                 </p>
-                <button
-                    className="btn btn-primary"
-                    style={{ position: "absolute", top: 20, right: 20, padding: "8px 16px" }}
-                    onClick={() => setShowWithdrawModal(true)}
-                    id="btn-withdraw"
-                >
-                    💳 Rút tiền
-                </button>
+                <div style={{ position: "absolute", top: 20, right: 20, display: "flex", gap: 8 }}>
+                    <button
+                        className="btn btn-outline"
+                        style={{ padding: "8px 16px", borderColor: "var(--accent-danger)", color: "var(--accent-danger)" }}
+                        onClick={() => setShowDebtModal(true)}
+                    >
+                        Tạm ứng
+                    </button>
+                    <button
+                        className="btn btn-primary"
+                        style={{ padding: "8px 16px" }}
+                        onClick={() => setShowWithdrawModal(true)}
+                        id="btn-withdraw"
+                    >
+                        💳 Rút tiền
+                    </button>
+                </div>
 
                 {/* Money Goal Progress */}
                 <div className="balance-goal-section">
@@ -274,6 +320,12 @@ export default function Dashboard() {
                     onCancel={() => setShowWithdrawModal(false)}
                 />
             )}
+            {showDebtModal && (
+                <DebtModal
+                    onConfirm={handleDebt}
+                    onCancel={() => setShowDebtModal(false)}
+                />
+            )}
             {showMoneyGoalModal && (
                 <GoalEditModal
                     title="Chỉnh mục tiêu tiền thưởng"
@@ -302,6 +354,15 @@ export default function Dashboard() {
                         addToast({ message: `🏆 "${name}": ${val} giờ`, type: "success" });
                     }}
                     onCancel={() => setShowHourGoalModal(false)}
+                />
+            )}
+            {showSettingsModal && (
+                <SettingsModal
+                    isDailyFeeEnabled={isDailyFeeEnabled}
+                    setIsDailyFeeEnabled={setIsDailyFeeEnabled}
+                    isTargetPenaltyEnabled={isTargetPenaltyEnabled}
+                    setIsTargetPenaltyEnabled={setIsTargetPenaltyEnabled}
+                    onClose={() => setShowSettingsModal(false)}
                 />
             )}
         </div>
