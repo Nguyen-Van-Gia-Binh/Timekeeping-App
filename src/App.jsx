@@ -7,9 +7,10 @@ import StudyTimer from "./components/StudyTimer";
 import Statistics from "./components/Statistics";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Calendar } from "lucide-react";
+import { Calendar, Wallet } from "lucide-react";
 import { isDatabaseEmpty, importDataFromPayload, clearAllData } from "./services/localService";
 import { useAppContext } from "./context/AppContext";
+import AccountTab from "./components/AccountTab";
 
 /* ─── Loading Screen ────────────────────────────────────────────────── */
 function LoadingScreen() {
@@ -149,6 +150,21 @@ export default function App() {
           <div style={{ height: "100%", paddingBottom: "32px", boxSizing: "border-box" }}>
             <Statistics />
           </div>
+        )}
+
+        {activePage === "account" && (
+          <>
+            <div className="page-header">
+              <div>
+                <h1 className="page-title">Tài khoản</h1>
+                <p className="page-subtitle">Quản lý rút tiền, tạm ứng và lịch sử giao dịch</p>
+              </div>
+              <div className="date-badge">
+                <Wallet size={13} /> Tài chính
+              </div>
+            </div>
+            <AccountTab />
+          </>
         )}
       </main>
     </div>

@@ -1,6 +1,6 @@
 /* src/data/helpConfig.js */
 import React from 'react';
-import { Target, CheckCircle, Clock, Coffee, ShieldAlert, Award } from 'lucide-react';
+import { Target, CheckCircle, Clock, Coffee, Award } from 'lucide-react';
 
 export const helpSections = [
     {
@@ -9,8 +9,8 @@ export const helpSections = [
         icon: <CheckCircle size={18} style={{ color: "var(--accent-success)" }} />,
         content: (
             <ul style={{ paddingLeft: 20, margin: 0, color: "var(--text-secondary)", fontSize: 13, lineHeight: 1.6 }}>
-                <li>Thêm và hoàn thành các task để nhận thưởng (+20.000đ/ngày nếu xong hết).</li>
-                <li>Mỗi task chưa hoàn thành có thể bị trừ tiền (tuỳ thuộc Cài đặt Động lực).</li>
+                <li>Thêm và hoàn thành các task để ghi nhận tiến độ bản thân.</li>
+                <li>Hoàn thành tất cả task trong ngày sẽ được nhận thưởng nóng +20.000đ.</li>
             </ul>
         )
     },
@@ -21,18 +21,18 @@ export const helpSections = [
         content: (
             <ul style={{ paddingLeft: 20, margin: 0, color: "var(--text-secondary)", fontSize: 13, lineHeight: 1.6 }}>
                 <li>Bấm bắt đầu trong tab Đồng hồ để ghi nhận thời gian học (1 giờ = 10.000đ).</li>
-                <li>Giờ học sẽ tự động cộng dồn vào Mục tiêu Tháng.</li>
+                <li>Học càng nhiều, tiền thưởng càng tăng.</li>
             </ul>
         )
     },
     {
-        id: 'debt',
-        title: 'Hệ thống Tạm ứng (Nợ)',
+        id: 'account',
+        title: 'Hệ thống Tài khoản & Tạm ứng',
         icon: <Coffee size={18} style={{ color: "var(--accent-warning)" }} />,
         content: (
             <ul style={{ paddingLeft: 20, margin: 0, color: "var(--text-secondary)", fontSize: 13, lineHeight: 1.6 }}>
-                <li>Bạn có thể tạm ứng tiền khi cần gấp, hệ thống sẽ ghi nhận Nợ.</li>
-                <li>Để trả nợ, hãy chăm chỉ học tập và hoàn thành task để kiếm tiền bù vào. Số dư sẽ bị trừ vào khoản Nợ ưu tiên trước.</li>
+                <li>Bạn có thể Rút Tiền từ số dư kiếm được để đi chơi, hoặc Tạm Ứng tiền mặt khi cần gấp (hệ thống sẽ ghi nhận Nợ).</li>
+                <li>Các tiện ích này chuyển dịch hoàn toàn vào mục <strong>Tài khoản</strong>.</li>
             </ul>
         )
     },
@@ -43,18 +43,18 @@ export const helpSections = [
         content: (
             <ul style={{ paddingLeft: 20, margin: 0, color: "var(--text-secondary)", fontSize: 13, lineHeight: 1.6 }}>
                 <li>Bạn có thể đặt tên, thay đổi số liệu của các mục tiêu Tiền Thưởng, Giờ Học cho phù hợp với bản thân.</li>
-                <li>Khi số dư vượt qua Mục tiêu Tiền Thưởng, thanh tiến trình hiển thị sẽ đầy 100%.</li>
+                <li>Kiểm tra tiến độ thường xuyên trên Dashboard.</li>
             </ul>
         )
     },
     {
-        id: 'rules',
-        title: 'Luật (Chống lười)',
-        icon: <ShieldAlert size={18} style={{ color: "var(--accent-danger)" }} />,
+        id: 'bonuses',
+        title: 'Thưởng chuỗi ngày (Streak)',
+        icon: <Award size={18} style={{ color: "var(--accent-success)" }} />,
         content: (
             <ul style={{ paddingLeft: 20, margin: 0, color: "var(--text-secondary)", fontSize: 13, lineHeight: 1.6 }}>
-                <li><strong>Phí duy trì (2.000đ/ngày):</strong> Trừ tự động mỗi ngày (nếu đang bật trong cài đặt).</li>
-                <li><strong>Phạt Chưa Đạt Mục Tiêu:</strong> Nếu cuối tuần/tháng không đạt tiến độ, bạn sẽ bị phạt trừ tiền thẳng vào tài khoản. Cố gắng giữ tỷ lệ trên 70% nhé!</li>
+                <li><strong>Tuần hoàn hảo:</strong> Hoàn thành 100% nhiệm vụ trong 7 ngày liên tiếp để nhận thưởng +100.000đ.</li>
+                <li><strong>Tháng hoàn hảo:</strong> Kiên trì cả tháng sẽ mang lại phần thưởng lớn +700.000đ!</li>
             </ul>
         )
     }

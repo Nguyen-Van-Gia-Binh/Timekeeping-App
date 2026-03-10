@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { formatCurrency } from "../hooks/useBonusLogic";
+import { formatCurrency } from "../utils/financeLogic";
 
 export default function PayDebtModal({ currentBalance, debt, onConfirm, onCancel }) {
     const [amount, setAmount] = useState("");

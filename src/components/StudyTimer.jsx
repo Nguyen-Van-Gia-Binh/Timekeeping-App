@@ -1,10 +1,11 @@
 // src/components/StudyTimer.jsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { Play, Square, Clock, PlusCircle } from "lucide-react";
 import CameraModal from "./CameraModal";
-import { addStudySession, getUnpaidDebts, payDebt, addWithdrawal } from "../services/localService";
+import { addStudySession } from "../services/localService";
 import { useAppContext } from "../context/AppContext";
 import { useToast } from "./Toast";
+import { useTimerLogic } from "../hooks/useTimerLogic";
 
 function pad(n) { return String(n).padStart(2, "0"); }
 function formatSeconds(total) {
@@ -17,53 +18,30 @@ function formatSeconds(total) {
 export default function StudyTimer() {
     const { triggerRefresh } = useAppContext();
     const addToast = useToast();
-    const [running, setRunning] = useState(false);
-    const [elapsed, setElapsed] = useState(0);
+    const { running, elapsed, start, stop } = useTimerLogic();
     const [showCamera, setShowCamera] = useState(false);
     const [manualHours, setManualHours] = useState("");
-    const intervalRef = useRef(null);
-    const startTimeRef = useRef(null);
-
-    useEffect(() => {
-        if (running) {
-            startTimeRef.current = Date.now() - elapsed * 1000;
-            intervalRef.current = setInterval(() => {
-                setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000));
-            }, 1000);
-        } else {
-            clearInterval(intervalRef.current);
-        }
-        return () => clearInterval(intervalRef.current);
-    }, [running]);
 
     const handleCameraConfirm = () => {
         setShowCamera(false);
-        setRunning(true);
+        start();
     };
 
     const handleStop = async () => {
-        setRunning(false);
-        if (elapsed > 0) {
-            await addStudySession(elapsed);
-            const hrs = Math.floor(elapsed / 3600);
+        const savedElapsed = stop();
+        if (savedElapsed > 0) {
+            await addStudySession(savedElapsed);
+            const hrs = Math.floor(savedElapsed / 3600);
             const earned = hrs * 10000;
-
-            if (earned > 0) {
-                addToast({
-                    message: `⏱️ Phiên học lưu thành công! +${earned.toLocaleString("vi-VN")}đ`,
-                    type: "success",
-                    duration: 4000,
-                });
-            } else {
-                addToast({
-                    message: "⏱️ Phiên học đã được lưu!",
-                    type: "success",
-                    duration: 4000,
-                });
-            }
+            addToast({
+                message: earned > 0
+                    ? `⏱️ Phiên học lưu thành công! +${earned.toLocaleString("vi-VN")}đ`
+                    : "⏱️ Phiên học đã được lưu!",
+                type: "success",
+                duration: 4000,
+            });
             triggerRefresh();
         }
-        setElapsed(0);
     };
 
     const handleManualSubmit = async () => {
@@ -71,19 +49,13 @@ export default function StudyTimer() {
         if (h > 0) {
             const seconds = Math.floor(h * 3600);
             await addStudySession(seconds);
-
             const earned = Math.floor(h) * 10000;
-            if (earned > 0) {
-                addToast({
-                    message: `📝 Đã ghi ${h} giờ học! +${earned.toLocaleString("vi-VN")}đ`,
-                    type: "success",
-                });
-            } else {
-                addToast({
-                    message: `📝 Đã ghi ${h} giờ học!`,
-                    type: "success",
-                });
-            }
+            addToast({
+                message: earned > 0
+                    ? `📝 Đã ghi ${h} giờ học! +${earned.toLocaleString("vi-VN")}đ`
+                    : `📝 Đã ghi ${h} giờ học!`,
+                type: "success",
+            });
             triggerRefresh();
             setManualHours("");
         }

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { formatCurrency } from "../hooks/useBonusLogic";
+import { formatCurrency } from "../utils/financeLogic";
 
 export default function WithdrawModal({ maxAmount, onConfirm, onCancel }) {
     const [amount, setAmount] = useState("");

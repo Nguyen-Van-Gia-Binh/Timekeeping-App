@@ -39,10 +39,9 @@ export default function TaskSection({ dateKey }) {
         await updateTask(task.id, { completed: newCompleted });
 
         if (newCompleted) {
-            addToast({ message: "🎉 Hoàn thành nhiệm vụ! +10,000đ", type: "success", duration: 3000 });
-        } else {
-            addToast({ message: "Hoàn lại nhiệm vụ. -10,000đ", type: "warning", duration: 3000 });
+            addToast({ message: "✅ Hoàn thành! Cố lên nhé!", type: "success", duration: 2000 });
         }
+        // Không hiển thị toast khi untick
 
         await loadTasks();
         triggerRefresh();
@@ -51,7 +50,7 @@ export default function TaskSection({ dateKey }) {
         const updated = await getTasksForDate(dateKey);
         const allDone = updated.length > 0 && updated.every((t) => t.completed);
         if (newCompleted && allDone) {
-            addToast({ message: "🎉 Hoàn thành tất cả nhiệm vụ hôm nay! +20,000đ", type: "success", duration: 4000 });
+            addToast({ message: "🎉 Tuyệt vời! Bạn đã hoàn thành tất cả nhiệm vụ hôm nay! +20,000đ", type: "success", duration: 4000 });
         }
     };
 

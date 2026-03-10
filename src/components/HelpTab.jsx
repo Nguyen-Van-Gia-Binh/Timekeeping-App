@@ -63,7 +63,7 @@ export default function HelpTab() {
                         fontSize: 13,
                         color: "var(--text-secondary)"
                     }}>
-                        💡 <strong>Mẹo nhỏ:</strong> Nếu bạn cảm thấy áp lực, hãy vào nút "Cài đặt Động lực" ở phía trên cùng để tắt các luật phạt. Tuy nhiên, một chút áp lực sẽ tạo ra kim cương đấy!
+                        💡 <strong>Mẹo nhỏ:</strong> Tiền thưởng học tập được cộng ngay mỗi khi bạn lưu phiên, phần thưởng chuỗi ngày hoàn hảo sẽ được tổng kết vào cuối tuần/cuối tháng. Tab Tài khoản là nơi bạn "tất toán" và theo dõi dòng tiền!
                     </div>
                 </div>
             )}

@@ -7,13 +7,12 @@ import {
     getTasksForDate,
     getWithdrawals,
     getTaskStats,
-    getUnpaidDebts,
 } from "../services/localService";
 import {
     computeTotalBalance,
     calculateWeeklyAdjustments,
     calculateMonthlyAdjustments,
-} from "./useBonusLogic";
+} from "../utils/financeLogic";
 
 export function useDashboardStats(refreshSignal) {
     const todayKey = format(new Date(), "yyyy-MM-dd");
@@ -22,7 +21,6 @@ export function useDashboardStats(refreshSignal) {
     const [todayStudySec, setTodayStudySec] = useState(0);
     const [todayTasks, setTodayTasks] = useState([]);
     const [withdrawals, setWithdrawals] = useState([]);
-    const [debts, setDebts] = useState([]);
     const [taskStats, setTaskStats] = useState({ total: 0, done: 0 });
 
     const [moneyGoal, setMoneyGoalState] = useState(() => {
@@ -41,14 +39,6 @@ export function useDashboardStats(refreshSignal) {
 
     const [monthlyHourGoalName, setMonthlyHourGoalNameState] = useState(() =>
         localStorage.getItem("StudyTracker_MonthlyHourGoalName") || "Mục tiêu tháng"
-    );
-
-    const [isDailyFeeEnabled, setIsDailyFeeEnabledState] = useState(() =>
-        localStorage.getItem("StudyTracker_IsDailyFeeEnabled") === "true"
-    );
-
-    const [isTargetPenaltyEnabled, setIsTargetPenaltyEnabledState] = useState(() =>
-        localStorage.getItem("StudyTracker_IsTargetPenaltyEnabled") === "true"
     );
 
     const setMoneyGoal = useCallback((val) => {
@@ -71,31 +61,19 @@ export function useDashboardStats(refreshSignal) {
         localStorage.setItem("StudyTracker_MonthlyHourGoalName", name);
     }, []);
 
-    const setIsDailyFeeEnabled = useCallback((val) => {
-        setIsDailyFeeEnabledState(val);
-        localStorage.setItem("StudyTracker_IsDailyFeeEnabled", val.toString());
-    }, []);
-
-    const setIsTargetPenaltyEnabled = useCallback((val) => {
-        setIsTargetPenaltyEnabledState(val);
-        localStorage.setItem("StudyTracker_IsTargetPenaltyEnabled", val.toString());
-    }, []);
-
     const load = useCallback(async () => {
-        const [records, sessions, tasks, wData, stats, unpaidDebts] = await Promise.all([
+        const [records, sessions, tasks, wData, stats] = await Promise.all([
             getAllDayRecords(),
             getSessionsForDate(todayKey),
             getTasksForDate(todayKey),
             getWithdrawals(),
             getTaskStats(),
-            getUnpaidDebts(),
         ]);
         setDayRecords(records);
         setTodayStudySec(sessions.reduce((a, s) => a + (s.durationSeconds || 0), 0));
         setTodayTasks(tasks);
         setWithdrawals(wData);
         setTaskStats(stats);
-        setDebts(unpaidDebts);
     }, [todayKey]);
 
     useEffect(() => {
@@ -104,8 +82,6 @@ export function useDashboardStats(refreshSignal) {
         setMonthlyHourGoalState(parseInt(localStorage.getItem("StudyTracker_MonthlyHourGoal") || "50", 10));
         setMoneyGoalNameState(localStorage.getItem("StudyTracker_MoneyGoalName") || "Mục tiêu tích lũy");
         setMonthlyHourGoalNameState(localStorage.getItem("StudyTracker_MonthlyHourGoalName") || "Mục tiêu tháng");
-        setIsDailyFeeEnabledState(localStorage.getItem("StudyTracker_IsDailyFeeEnabled") === "true");
-        setIsTargetPenaltyEnabledState(localStorage.getItem("StudyTracker_IsTargetPenaltyEnabled") === "true");
 
         load();
     }, [load, refreshSignal]);
@@ -126,23 +102,11 @@ export function useDashboardStats(refreshSignal) {
         [allRecords]
     );
 
-    const totalBalance = useMemo(() => computeTotalBalance(sortedRecords, {
-        isDailyFeeEnabled,
-        isTargetPenaltyEnabled,
-        todayKey,
-        dailyTargetHours: 2, // Hardcode or read from setting
-        dailyFeeAmount: 10000,
-        penaltyPerHour: 10000
-    }), [sortedRecords, isDailyFeeEnabled, isTargetPenaltyEnabled, todayKey]);
+    const totalBalance = useMemo(() => computeTotalBalance(sortedRecords), [sortedRecords]);
 
     const totalWithdrawn = useMemo(
         () => withdrawals.reduce((acc, w) => acc + w.amount, 0),
         [withdrawals]
-    );
-
-    const totalDebtAmount = useMemo(
-        () => debts.reduce((acc, d) => acc + d.amount, 0),
-        [debts]
     );
 
     const currentBalance = totalBalance - totalWithdrawn;
@@ -225,12 +189,6 @@ export function useDashboardStats(refreshSignal) {
         todayHours,
         todayMissed,
         todayDone,
-        debts,
-        totalDebtAmount,
-        isDailyFeeEnabled,
-        setIsDailyFeeEnabled,
-        isTargetPenaltyEnabled,
-        setIsTargetPenaltyEnabled,
         load,
     };
 }
