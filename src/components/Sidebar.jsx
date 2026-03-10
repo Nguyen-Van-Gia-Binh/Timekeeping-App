@@ -1,6 +1,6 @@
 // src/components/Sidebar.jsx
 import React, { useState } from "react";
-import { LayoutDashboard, ListChecks, Download, Upload, Menu, X, RotateCcw } from "lucide-react";
+import { LayoutDashboard, ListChecks, Download, Upload, Menu, X, RotateCcw, Receipt } from "lucide-react";
 import { exportData, importData, clearAllData, importDataFromPayload } from "../services/localService";
 import { useAppContext } from "../context/AppContext";
 import { useToast } from "./Toast";
@@ -67,6 +67,7 @@ export default function Sidebar({ activePage, setActivePage }) {
     const navItems = [
         { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={16} /> },
         { id: "today", label: "Hôm nay", icon: <ListChecks size={16} /> },
+        { id: "transactions", label: "Lịch sử giao dịch", icon: <Receipt size={16} /> },
         {
             id: "statistics", label: "Thống kê", icon: (
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

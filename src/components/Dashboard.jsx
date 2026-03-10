@@ -3,12 +3,13 @@ import React, { useState, useMemo } from "react";
 import { TrendingUp, BookOpen, Calendar, CheckCircle, Flame } from "lucide-react";
 import { format, startOfWeek, endOfWeek, eachDayOfInterval } from "date-fns";
 import { formatCurrency } from "../hooks/useBonusLogic";
-import { addWithdrawal, addDebt } from "../services/localService";
+import { addWithdrawal, addDebt, payDebt } from "../services/localService";
 import { useAppContext } from "../context/AppContext";
 import { useDashboardStats } from "../hooks/useDashboardStats";
 import { useToast } from "./Toast";
 import WithdrawModal from "./WithdrawModal";
 import DebtModal from "./DebtModal";
+import PayDebtModal from "./PayDebtModal";
 import GoalEditModal from "./GoalEditModal";
 import SettingsModal from "./SettingsModal";
 import HelpTab from "./HelpTab";
@@ -64,6 +65,8 @@ export default function Dashboard() {
     const addToast = useToast();
     const [showWithdrawModal, setShowWithdrawModal] = useState(false);
     const [showDebtModal, setShowDebtModal] = useState(false);
+    const [showPayDebtModal, setShowPayDebtModal] = useState(false);
+    const [selectedDebt, setSelectedDebt] = useState(null);
     const [showMoneyGoalModal, setShowMoneyGoalModal] = useState(false);
     const [showHourGoalModal, setShowHourGoalModal] = useState(false);
     const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -122,6 +125,19 @@ export default function Dashboard() {
         addToast({ message: `💳 Đã tạm ứng ${formatCurrency(amount)}! Hãy cố gắng học để trả nợ nhé.`, type: "warning" });
     };
 
+    const handlePayDebt = async (amountToPay, debt) => {
+        if (!debt || amountToPay <= 0) return;
+
+        await payDebt(debt.id, amountToPay);
+        await addWithdrawal(amountToPay, `Trả nợ: ${debt.reason}`);
+
+        setShowPayDebtModal(false);
+        setSelectedDebt(null);
+        load();
+        triggerRefresh();
+        addToast({ message: `✅ Đã trả ${formatCurrency(amountToPay)} cho khoản nợ!`, type: "success" });
+    };
+
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
 
@@ -148,8 +164,24 @@ export default function Dashboard() {
                         {formatCurrency(currentBalance)}
                     </div>
                     {totalDebtAmount > 0 && (
-                        <div style={{ color: "var(--accent-danger)", fontSize: 16, fontWeight: 600 }}>
+                        <div style={{ color: "var(--accent-danger)", fontSize: 16, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
                             (Nợ: -{formatCurrency(totalDebtAmount)})
+                            <button
+                                className="btn btn-primary"
+                                style={{ padding: "4px 8px", fontSize: 12, height: "auto" }}
+                                onClick={() => {
+                                    if (currentBalance <= 0) {
+                                        window.alert("❌ Số dư của bạn đang rỗng hoặc âm! Hãy hoàn thành nhiệm vụ và học tập để có tiền trả nợ nhé.");
+                                        return;
+                                    }
+                                    if (debts.length > 0) {
+                                        setSelectedDebt(debts[0]);
+                                        setShowPayDebtModal(true);
+                                    }
+                                }}
+                            >
+                                Trả nợ
+                            </button>
                         </div>
                     )}
                 </div>
@@ -328,6 +360,17 @@ export default function Dashboard() {
                 <DebtModal
                     onConfirm={handleDebt}
                     onCancel={() => setShowDebtModal(false)}
+                />
+            )}
+            {showPayDebtModal && (
+                <PayDebtModal
+                    currentBalance={currentBalance}
+                    debt={selectedDebt}
+                    onConfirm={handlePayDebt}
+                    onCancel={() => {
+                        setShowPayDebtModal(false);
+                        setSelectedDebt(null);
+                    }}
                 />
             )}
             {showMoneyGoalModal && (

@@ -35,13 +35,22 @@ export default function TaskSection({ dateKey }) {
     };
 
     const handleToggle = async (task) => {
-        await updateTask(task.id, { completed: !task.completed });
+        const newCompleted = !task.completed;
+        await updateTask(task.id, { completed: newCompleted });
+
+        if (newCompleted) {
+            addToast({ message: "🎉 Hoàn thành nhiệm vụ! +10,000đ", type: "success", duration: 3000 });
+        } else {
+            addToast({ message: "Hoàn lại nhiệm vụ. -10,000đ", type: "warning", duration: 3000 });
+        }
+
         await loadTasks();
         triggerRefresh();
+
         // Check if all done after toggle
         const updated = await getTasksForDate(dateKey);
         const allDone = updated.length > 0 && updated.every((t) => t.completed);
-        if (!task.completed && allDone) {
+        if (newCompleted && allDone) {
             addToast({ message: "🎉 Hoàn thành tất cả nhiệm vụ hôm nay! +20,000đ", type: "success", duration: 4000 });
         }
     };
