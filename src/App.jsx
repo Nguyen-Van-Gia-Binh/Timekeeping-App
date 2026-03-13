@@ -163,7 +163,7 @@ export default function App() {
                 <Wallet size={13} /> Tài chính
               </div>
             </div>
-            <AccountTab />
+            <AccountTab key={activePage} />
           </>
         )}
       </main>
