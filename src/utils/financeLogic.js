@@ -128,10 +128,12 @@ export function generateTransactionHistory(dayRecords, withdrawals) {
         for (const [week, data] of Object.entries(weekMap)) {
             const tDate = new Date(`${data.lastDate}T23:59:00`).getTime();
             if (data.completedAllDays && data.dayCount === 7) addTx(tDate, "INCOME", 100000, `🏆 Thưởng tuần hoàn hảo (Tuần ${week})`);
+            if (data.missedCount >= 5) addTx(tDate, "EXPENSE", 20000, `😞 Phạt tuần lười biếng (${data.missedCount} task bỏ lỡ - Tuần ${week})`);
         }
         for (const [month, data] of Object.entries(monthMap)) {
             const tDate = new Date(`${data.lastDate}T23:59:59`).getTime();
             if (data.completedAllDays && data.dayCount === data.daysInMonth) addTx(tDate, "INCOME", 700000, `🎉 Thưởng tháng xuất sắc (${month})`);
+            if (data.missedCount >= 25) addTx(tDate, "EXPENSE", 200000, `😞 Phạt tháng lười biếng (${data.missedCount} task bỏ lỡ - Tháng ${month})`);
         }
     }
 
