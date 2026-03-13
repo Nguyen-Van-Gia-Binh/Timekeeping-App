@@ -9,7 +9,7 @@ import {
     addDebt,
     payDebt,
 } from "../services/localService";
-import { generateTransactionHistory, formatCurrency } from "../utils/financeLogic";
+import { generateTransactionHistory, computeTotalBalance, formatCurrency } from "../utils/financeLogic";
 import { useAppContext } from "../context/AppContext";
 import { useToast } from "../components/Toast";
 
@@ -37,9 +37,10 @@ export function useAccountLogic() {
         const history = generateTransactionHistory(records, withdrawals);
         setTransactions(history);
 
-        const totalIncome = history.filter((t) => t.type === "INCOME").reduce((acc, t) => acc + t.amount, 0);
-        const totalExpense = history.filter((t) => t.type === "EXPENSE").reduce((acc, t) => acc + t.amount, 0);
-        setCurrentBalance(totalIncome - totalExpense);
+        // Dùng cùng logic với Dashboard để đảm bảo số dư đồng bộ
+        const totalIncome = computeTotalBalance(records);
+        const totalWithdrawnAmt = withdrawals.reduce((acc, w) => acc + w.amount, 0);
+        setCurrentBalance(totalIncome - totalWithdrawnAmt);
 
         setDebts(unpaidDebts);
         setTotalDebtAmount(unpaidDebts.reduce((acc, d) => acc + d.amount, 0));
